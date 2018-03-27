@@ -1,0 +1,8 @@
+~~~~~~ docker images output ~~~~~
+REPOSITORY           TAG                 IMAGE ID            CREATED             SIZE
+me/ubuntu_tmp_file   latest              310a6e7b71dc        22 minutes ago      112MB
+ubuntu               16.04               f975c5035748        2 weeks ago         112MB
+hello-world          latest              f2a91732366c        4 months ago        1.85kB
+
+~~~~~ inspect <container id> VS. inspect <image id> ~~~~~
+На мой взгляд, вывод inspect разнится наличием поля State в случае контейнера, что позволяет считать его "экземпляром" образа.
