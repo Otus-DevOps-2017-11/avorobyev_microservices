@@ -37,5 +37,5 @@ eval $(docker machine env <docker host name>) #ассоциироваться с
 docker build -t <image_name:image_tag> . #собрать образ, используя описание и файлы в текущем каталоге
 docker tag <dh_user/dh_repository:dh_tag> <image_name:image_tag> . #пометить образ по правилам docker hub
 docker login #зайти на docker hub
-docker push
+docker push <dh_user/dh_repository:dh_tag> #отправить образ в репозиторий
 ```
