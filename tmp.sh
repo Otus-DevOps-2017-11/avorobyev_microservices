@@ -13,16 +13,16 @@ gcloud compute firewall-rules create reddit-app \
 --direction=INGRESS
 
 docker pull mongo:latest
-docker build -t alxbird/post:1.0 ./post-py
-docker build -t alxbird/comment:1.0 ./comment
-docker build -t alxbird/ui:1.0 ./ui
+docker build -t post:1.0 ./post-py
+docker build -t comment:1.0 ./comment
+docker build -t ui:1.0 ./ui
 
 docker network create reddit
 
-docker run -d --network=reddit --network-alias=post_db --network-alias=comment_db mongo:latest
-docker run -d --network=reddit --network-alias=comment alxbird/comment:1.0
-docker run -d --network=reddit --network-alias=post alxbird/post:1.0
-docker run -d --network=reddit -p 9292:9292 alxbird/ui:1.0
+docker run -d --network reddit --network-alias post_db --network-alias comment_db mongo:latest
+docker run -d --network reddit --network-alias comment comment:1.0
+docker run -d --network reddit --network-alias post post:1.0
+docker run -d --network reddit -p 9292:9292 ui:1.0
 
 cat > envfile <<-!
 COMMENT_SERVICE_HOST=commenter
@@ -31,7 +31,7 @@ COMMENT_DATABASE_HOST=commenter_db
 POST_DATABASE_HOST=poster_db
 !
 
-docker run -d --network=reddit --network-alias=poster_db --network-alias=commenter_db mongo:latest
-docker run -d --network=reddit --network-alias=commenter --env-file=./envfile alxbird/comment:1.0
-docker run -d --network=reddit --network-alias=poster --env-file=./envfile alxbird/post:1.0
-docker run -d --network=reddit -p 9292:9292 --env-file=./envfile alxbird/ui:1.0
+docker run -d --network reddit --network-alias poster_db --network-alias commenter_db mongo:latest
+docker run -d --network reddit --network-alias commenter --env-file ./envfile comment:1.0
+docker run -d --network reddit --network-alias poster --env-file ./envfile post:1.0
+docker run -d --network reddit -p 9292:9292 --env-file ./envfile ui:1.0
