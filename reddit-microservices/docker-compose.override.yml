@@ -1,35 +1,49 @@
 version: '3'
+
 services:
+
   post_db:
-    image: mongo:${MONGO_VERSION}
-    volumes:
-      - post_db:/data/db
+
     networks:
-      - reddit
+      reddit:
+        aliases:
+          - ${COMMENT_DATABASE_HOST}
+          - ${POST_DATABASE_HOST}
   ui:
-    build: ./ui
-    image: ${USER_NAME}/ui:${UI_VERSION}
-    ports:
-      - ${UI_PORT}:9292/tcp
-    networks:
-      - reddit
+
+    #volumes:
+    #  - ./ui:/app
+
+    environment:
+      POST_SERVICE_HOST: ${POST_SERVICE_HOST}
+      COMMENT_SERVICE_HOST: ${COMMENT_SERVICE_HOST}
+
+    command: puma -w 2 --debug
+
   post:
-    build: ./post-py
-    image: ${USER_NAME}/post:${POST_VERSION}
+
     networks:
-      - reddit
+      reddit:
+        aliases:
+          - ${POST_SERVICE_HOST}
+
+    #volumes:
+    #  - ./post-py:/app
+
+    environment:
+      POST_DATABASE_HOST: ${POST_DATABASE_HOST}
+
   comment:
-    build: ./comment
-    image: ${USER_NAME}/comment:${COMMENT_VERSION}
+
+    #volumes:
+    #  - ./comment:/app
+
     networks:
-      - reddit
+      reddit:
+        aliases:
+          - ${COMMENT_SERVICE_HOST}
 
-volumes:
-  post_db:
+    environment:
+      COMMENT_DATABASE_HOST: "${COMMENT_DATABASE_HOST}"
 
-networks:
-  reddit:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: ${IPAM_SUBNET:-172.29.0.0/16}
+    command: puma -w 2 --debug
