@@ -2,48 +2,16 @@ version: '3'
 
 services:
 
-  post_db:
-
-    networks:
-      reddit:
-        aliases:
-          - ${COMMENT_DATABASE_HOST}
-          - ${POST_DATABASE_HOST}
   ui:
-
-    #volumes:
-    #  - ./ui:/app
-
-    environment:
-      POST_SERVICE_HOST: ${POST_SERVICE_HOST}
-      COMMENT_SERVICE_HOST: ${COMMENT_SERVICE_HOST}
-
+    volumes:
+      - /home/docker-user/src/ui:/app
     command: puma -w 2 --debug
 
   post:
-
-    networks:
-      reddit:
-        aliases:
-          - ${POST_SERVICE_HOST}
-
-    #volumes:
-    #  - ./post-py:/app
-
-    environment:
-      POST_DATABASE_HOST: ${POST_DATABASE_HOST}
+    volumes:
+      - /home/docker-user/src/post-py:/app
 
   comment:
-
-    #volumes:
-    #  - ./comment:/app
-
-    networks:
-      reddit:
-        aliases:
-          - ${COMMENT_SERVICE_HOST}
-
-    environment:
-      COMMENT_DATABASE_HOST: "${COMMENT_DATABASE_HOST}"
-
+    volumes:
+      - /home/docker-user/src/comment:/app
     command: puma -w 2 --debug
