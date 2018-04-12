@@ -1,0 +1,35 @@
+version: '3'
+services:
+  post_db:
+    image: mongo:${MONGO_VERSION}
+    volumes:
+      - post_db:/data/db
+    networks:
+      - reddit
+  ui:
+    build: ./ui
+    image: ${USER_NAME}/ui:${UI_VERSION}
+    ports:
+      - ${UI_PORT}:9292/tcp
+    networks:
+      - reddit
+  post:
+    build: ./post-py
+    image: ${USER_NAME}/post:${POST_VERSION}
+    networks:
+      - reddit
+  comment:
+    build: ./comment
+    image: ${USER_NAME}/comment:${COMMENT_VERSION}
+    networks:
+      - reddit
+
+volumes:
+  post_db:
+
+networks:
+  reddit:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: ${IPAM_SUBNET:-172.29.0.0/16}
