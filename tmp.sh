@@ -44,4 +44,7 @@ fuse: if you are sure this is safe, use the 'nonempty' mount option
 exit status 1
 
 docker-machine ssh docker-host mkdir src
-docker-machine scp -r comment docker-host:src
+for _dir in comment post-py ui
+do
+  docker-machine scp -r $_dir docker-host:src
+done
