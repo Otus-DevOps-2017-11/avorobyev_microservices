@@ -48,3 +48,30 @@ for _dir in comment post-py ui
 do
   docker-machine scp -r $_dir docker-host:src
 done
+
+
+#create machine for gitlab
+docker-machine create --driver google \
+--google-project docker-199516 \
+--google-zone europe-west1-b \
+--google-machine-type n1-standard-1 \
+--google-disk-size 50 \
+--google-machine-image $(gcloud compute images list --filter ubuntu-1604-lts --uri) \
+docker-gitlab
+
+
+gcloud compute firewall-rules create gitlab-http \
+--allow tcp:80,tcp:8080,tcp:443 \
+--target-tags=docker-gitlab \
+--description="Allow http for gitlab" \
+--direction=INGRESS
+
+
+#bind mounts created with root permissions
+ls -la /srv/gitlab/
+total 20
+drwxr-xr-x  5 root root 4096 Apr 17 17:04 .
+drwxr-xr-x  3 root root 4096 Apr 17 17:04 ..
+drwxrwxr-x  3 root root 4096 Apr 17 17:04 config
+drwxr-xr-x 10 root root 4096 Apr 17 17:04 data
+drwxr-xr-x  8  998 root 4096 Apr 17 17:04 logs
