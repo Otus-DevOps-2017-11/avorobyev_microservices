@@ -69,6 +69,17 @@ gcloud compute firewall-rules create gitlab-access \
 
 export DOCKER_HOST_IP=$(docker-machine ip $DOCKER_MACHINE_NAME)
 
+
+
+#https://docs.gitlab.com/runner/install/docker.html
+docker run -d --name gitlab-runner --restart always \
+  -v /srv/gitlab-runner/config:/etc/gitlab-runner \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  gitlab/gitlab-runner:latest
+
+
+docker exec -it gitlab-runner gitlab-runner register
+
 #bind mounts created with root permissions
 ls -la /srv/gitlab/
 total 20
