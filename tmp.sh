@@ -79,12 +79,3 @@ docker run -d --name gitlab-runner --restart always \
 
 
 docker exec -it gitlab-runner gitlab-runner register
-
-#bind mounts created with root permissions
-ls -la /srv/gitlab/
-total 20
-drwxr-xr-x  5 root root 4096 Apr 17 17:04 .
-drwxr-xr-x  3 root root 4096 Apr 17 17:04 ..
-drwxrwxr-x  3 root root 4096 Apr 17 17:04 config
-drwxr-xr-x 10 root root 4096 Apr 17 17:04 data
-drwxr-xr-x  8  998 root 4096 Apr 17 17:04 logs
