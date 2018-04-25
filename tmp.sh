@@ -103,3 +103,17 @@ eval $(docker-machine env mon-vm)
 
 #start prometheus container
 docker run --rm -p 9090:9090 -d --name prometheus prom/prometheus
+
+
+cat <<! > monitoring/prometheus/Dockerfile
+FROM prom/prometheus
+ADD prometheus.yml /etc/prometheus
+!
+
+
+for _d in ui comment post
+do
+  ( export USER_NAME=me
+  cd src/$_d && sh docker_build.sh
+  )
+done

@@ -13,8 +13,9 @@ services:
           - ${POST_DATABASE_HOST}
 
   ui:
-    build: ./ui
-    image: ${USER_NAME}/ui:${UI_VERSION}
+    #build: ./ui
+    # image: ${USER_NAME}/ui:${UI_VERSION}
+    image: ${USER_NAME}/ui
     environment:
       POST_SERVICE_HOST: ${POST_SERVICE_HOST}
       COMMENT_SERVICE_HOST: ${COMMENT_SERVICE_HOST}
@@ -24,8 +25,9 @@ services:
       - front_net
 
   post:
-    build: ./post-py
-    image: ${USER_NAME}/post:${POST_VERSION}
+    #build: ./post-py
+    # image: ${USER_NAME}/post:${POST_VERSION}
+    image: ${USER_NAME}/post
     environment:
       POST_DATABASE_HOST: ${POST_DATABASE_HOST}
     networks:
@@ -35,8 +37,9 @@ services:
       back_net:
 
   comment:
-    build: ./comment
-    image: ${USER_NAME}/comment:${COMMENT_VERSION}
+    #build: ./comment
+    # image: ${USER_NAME}/comment:${COMMENT_VERSION}
+    image: ${USER_NAME}/comment
     environment:
       COMMENT_DATABASE_HOST: "${COMMENT_DATABASE_HOST}"
     networks:
@@ -45,8 +48,23 @@ services:
           - ${COMMENT_SERVICE_HOST}
       back_net:
 
+  monitor:
+    image: prometheus-custom
+    ports:
+      - 9090:9090
+    volumes:
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention=1d'
+    networks:
+      front_net:
+      back_net:
+
 volumes:
   post_db:
+  prometheus_data:
 
 networks:
   front_net:
