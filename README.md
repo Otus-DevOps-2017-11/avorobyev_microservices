@@ -249,7 +249,8 @@ docker exec -it gitlab-runner gitlab-runner register
 
 Объекты мониторинга - jobs (сервисы). С каждым из них ассоциирован список экземпляров сервиса. Экземпляр предоставляет http точку доступа, по пути /metrics которой предоставляется набор данных специального формата.  
 
-```<metric name>{<label name=label value>... } <metric value>
+```
+<metric name>{<label name=label value>... } <metric value>
 ```  
 
 При сборе каждому элементу данных присваивается метка времени.  
