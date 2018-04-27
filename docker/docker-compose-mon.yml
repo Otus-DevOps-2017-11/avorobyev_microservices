@@ -43,8 +43,21 @@ services:
     networks:
       back_net:
 
+  grafana:
+    image: grafana/grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: secret
+    depends_on:
+      - monitor
+    ports:
+      - 3000:3000
+    networks:
+      back_net:
+
 volumes:
   prometheus_data:
+  grafana_data:
 
 networks:
   front_net:

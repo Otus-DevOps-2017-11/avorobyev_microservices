@@ -119,4 +119,4 @@ do
 done
 
 ### monitoring-2 ###
-gcloud compute firewall-rules create mon-access --allow tcp:9090,tcp:8080 --description="Allow prometheus access" --target-tags=prometheus
+gcloud compute firewall-rules create mon-access --allow tcp:9090,tcp:8080,tcp:3000 --description="Allow prometheus access" --target-tags=prometheus
