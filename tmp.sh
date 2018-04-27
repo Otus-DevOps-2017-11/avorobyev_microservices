@@ -117,3 +117,6 @@ do
   cd src/$_d && sh docker_build.sh
   )
 done
+
+### monitoring-2 ###
+gcloud compute firewall-rules create mon-access --allow tcp:9090,tcp:8080 --description="Allow prometheus access" --target-tags=prometheus

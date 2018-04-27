@@ -40,6 +40,12 @@ services:
       - /dev/disk/:/dev/disk:ro
     ports:
       - 8080:8080
+    networks:
+      back_net:
 
 volumes:
   prometheus_data:
+
+networks:
+  front_net:
+  back_net:
