@@ -269,13 +269,13 @@ FROM prom/prometheus
 ADD prometheus.yml /etc/prometheus
 !
 
-docker build -t prometheus-custom .
+docker build -t ${USER_NAME}/prometheus .
 ```
 - Добавляем как еще один сервис в docker compose
 
 ```yaml
 monitor:
-  image: prometheus-custom
+  image: ${USER_NAME}/prometheus
   ports:
     - 9090:9090
   volumes:
@@ -312,10 +312,21 @@ node-exporter:
 ```bash
 for _d in ui comment post
 do
-  ( export USER_NAME=me
+  (
   cd src/$_d && sh docker_build.sh
   )
 done
 
 docker-compose -f docker-compose.yml up -d #явно указываем конфиг, чтоб не применять override файл
 ```
+
+- Отправляем образы на docker hub
+
+  ```bash
+  for _img in post comment ui prometheus
+  do
+    docker push $USER_NAME/$_img
+  done
+  ```
+
+  Результат здесь: https://hub.docker.com/r/alxbird/

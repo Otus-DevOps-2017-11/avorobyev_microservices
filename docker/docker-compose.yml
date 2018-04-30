@@ -49,7 +49,7 @@ services:
       back_net:
 
   monitor:
-    image: prometheus-custom
+    image: ${USER_NAME}/prometheus
     ports:
       - 9090:9090
     volumes:

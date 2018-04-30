@@ -110,10 +110,16 @@ FROM prom/prometheus
 ADD prometheus.yml /etc/prometheus
 !
 
-
-for _d in ui comment post
+#build srv images
+for _d in ui comment post-py
 do
-  ( export USER_NAME=me
+  (
   cd src/$_d && sh docker_build.sh
   )
+done
+
+#push them
+for _img in post comment ui prometheus
+do
+  docker push $USER_NAME/$_img
 done
