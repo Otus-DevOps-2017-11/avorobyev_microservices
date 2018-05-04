@@ -56,22 +56,26 @@ docker-machine create --driver google \
 --google-zone europe-west1-b \
 --google-machine-type n1-standard-1 \
 --google-disk-size 50 \
+--google-tags gitlab \
 --google-machine-image $(gcloud compute images list --filter ubuntu-1604-lts --uri) \
-docker-gitlab
+gitlab1
 
 
-gcloud compute firewall-rules create gitlab-http \
+gcloud compute firewall-rules create gitlab-access \
 --allow tcp:80,tcp:8080,tcp:443 \
---target-tags=docker-gitlab \
---description="Allow http for gitlab" \
+--target-tags=gitlab \
+--description="Allow gitlab access" \
 --direction=INGRESS
 
+export DOCKER_HOST_IP=$(docker-machine ip $DOCKER_MACHINE_NAME)
 
-#bind mounts created with root permissions
-ls -la /srv/gitlab/
-total 20
-drwxr-xr-x  5 root root 4096 Apr 17 17:04 .
-drwxr-xr-x  3 root root 4096 Apr 17 17:04 ..
-drwxrwxr-x  3 root root 4096 Apr 17 17:04 config
-drwxr-xr-x 10 root root 4096 Apr 17 17:04 data
-drwxr-xr-x  8  998 root 4096 Apr 17 17:04 logs
+
+
+#https://docs.gitlab.com/runner/install/docker.html
+docker run -d --name gitlab-runner --restart always \
+  -v /srv/gitlab-runner/config:/etc/gitlab-runner \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  gitlab/gitlab-runner:latest
+
+
+docker exec -it gitlab-runner gitlab-runner register

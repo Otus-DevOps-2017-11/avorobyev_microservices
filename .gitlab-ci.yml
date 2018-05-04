@@ -3,7 +3,9 @@ image: ruby:2.4.2
 stages:
   - build
   - test
-  - deploy
+  - review
+  - stage
+  - production
 
 variables:
   DATABASE_URL: 'mongodb://mongo/user_posts'
@@ -27,14 +29,43 @@ test_integration_job:
   script:
     - echo 'Testing 2'
 
-deploy_job:
-  stage: deploy
-  script:
-    - echo 'Deploy'
-
 test_unit_job:
   stage: test
   services:
     - mongo:latest
   script:
     - ruby simpletest.rb
+
+branch review:
+  stage: review
+  script: echo "Deploy to $CI_ENVIRONMENT_SLUG"
+  environment:
+    name: branch/$CI_COMMIT_REF_NAME
+    url: http://$CI_ENVIRONMENT_SLUG.example.com
+  only:
+    - branches
+  except:
+    - master
+
+staging:
+  stage: stage
+  when: manual
+  only:
+    - /^\d+\.\d+.\d+/
+  script:
+    - echo 'Deploy'
+  environment:
+    name: stage
+    url: http://beta.example.com
+
+
+production:
+  stage: production
+  when: manual
+  only:
+    - /^\d+\.\d+.\d+/
+  script:
+    - echo 'Deploy'
+  environment:
+    name: production
+    url: http://example.com #wtf???
