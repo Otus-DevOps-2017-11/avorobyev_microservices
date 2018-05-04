@@ -79,3 +79,47 @@ docker run -d --name gitlab-runner --restart always \
 
 
 docker exec -it gitlab-runner gitlab-runner register
+
+
+### monitoring-1 ###
+
+#access to prometheus
+gcloud compute firewall-rules create mon-access \
+--allow=tcp:9090 \
+--description="Allow prometheus access" \
+--target-tags=prometheus \
+--direction=INGRESS
+
+#create prometheus vm
+docker-machine create --driver google \
+--google-project docker-199516 \
+--google-zone europe-west1-b \
+--google-machine-type n1-standard-1 \
+--google-tags prometheus \
+--google-machine-image $(gcloud compute images list --filter ubuntu-1604-lts --uri) \
+mon-vm
+
+eval $(docker-machine env mon-vm)
+
+#start prometheus container
+docker run --rm -p 9090:9090 -d --name prometheus prom/prometheus
+
+
+cat <<! > monitoring/prometheus/Dockerfile
+FROM prom/prometheus
+ADD prometheus.yml /etc/prometheus
+!
+
+#build srv images
+for _d in ui comment post-py
+do
+  (
+  cd src/$_d && sh docker_build.sh
+  )
+done
+
+#push them
+for _img in post comment ui prometheus
+do
+  docker push $USER_NAME/$_img
+done

@@ -239,3 +239,94 @@ docker exec -it gitlab-runner gitlab-runner register
 ### Проблемы
 
 Столкнулся с невозможность зарегистрировать существующий docker host на другой рабочей машине. Пришлось сносить и создавать новый. В интернете простых решений не нашел.
+
+
+# Задание 21
+
+Изучаем сервис мониторинга Prometheus.
+
+## Модель
+
+Объекты мониторинга - jobs (сервисы). С каждым из них ассоциирован список экземпляров сервиса. Экземпляр предоставляет http точку доступа, по пути /metrics которой предоставляется набор данных специального формата.  
+
+```
+<metric name>{<label name=label value>... } <metric value>
+```  
+
+При сборе каждому элементу данных присваивается метка времени.  
+
+Наблюдаемый сервис может иметь собственную реализацию интерфейса мониторинга. Также возможна установка специального модуля - экспортера, извлекающего данные из сервиса и преобразующего их в формат сервера мониторинга.
+
+## Действия.
+
+### Установка.
+
+- Собираем кастомный образ с файлом конфигурации
+
+```bash
+cat <<! > Dockerfile
+FROM prom/prometheus
+ADD prometheus.yml /etc/prometheus
+!
+
+docker build -t ${USER_NAME}/prometheus .
+```
+- Добавляем как еще один сервис в docker compose
+
+```yaml
+monitor:
+  image: ${USER_NAME}/prometheus
+  ports:
+    - 9090:9090
+  volumes:
+    - prometheus_data:/prometheus
+  command:
+    - '--config.file=/etc/prometheus/prometheus.yml'
+    - '--storage.tsdb.path=/prometheus'
+    - '--storage.tsdb.retention=1d'
+  networks:
+    front_net:
+    back_net:
+```
+
+- Добавляем экспортер для докер хоста как еще один сервис в docker compose
+
+```yaml
+node-exporter:
+  image: prom/node-exporter:v0.15.2
+  user: root
+  volumes:
+    - /proc:/host/proc:ro
+    - /sys:/host/sys:ro
+    - /:/rootfs:ro
+  command:
+    - '--path.procfs=/host/proc'
+    - '--path.sysfs=/host/sys'
+    - '--collector.filesystem.ignored-mount-points="^/(sys|proc|dev|host|etc)($$|/)"'
+  networks:
+    back_net:
+```
+
+- Собираем образы приложений, стартуем, изучаем вэб интерфейс
+
+```bash
+for _d in ui comment post
+do
+  (
+  cd src/$_d && sh docker_build.sh
+  )
+done
+
+docker-compose -f docker-compose.yml up -d #явно указываем конфиг, чтоб не применять override файл
+```
+
+- Отправляем образы на docker hub
+
+  ```bash
+  for _img in post comment ui prometheus
+  do
+    docker push $USER_NAME/$_img
+  done
+  ```
+
+  Результат здесь: https://hub.docker.com/r/alxbird/
