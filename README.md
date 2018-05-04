@@ -148,3 +148,79 @@ volumes:
 ```
 
 Есть сомнения в полезности такого доступа, - ну помеяем исходники, а кто собирать будет? ... и перезапускать приложение с новыми бинарями?
+
+# Задание 19
+
+Gitlab. Это инструменты, разные, с единой точкой доступа и интерфейсом.
+
+## Установка
+
+ Ставим omnibus из docker образа. Для того, чтоб удовлетворить требованиям, создаем отдельную ВМ с 4ГБ памяти и 50ГБ диском:
+
+```bash
+#create vm
+docker-machine create --driver google \
+--google-project docker-xxx \
+--google-zone europe-west1-b \
+--google-machine-type n1-standard-1 \
+--google-disk-size 50 \
+--google-tags gitlab
+--google-machine-image $(gcloud compute images list --filter ubuntu-1604-lts --uri) \
+docker-gitlab
+
+#give access to gitlab services
+gcloud compute firewall-rules create gitlab-http \
+--allow tcp:80,tcp:8080,tcp:443 \
+--target-tags=gitlab \
+--description="Allow http for gitlab" \
+--direction=INGRESS
+
+#select machine
+eval $(docker-machine env docker-gitlab)
+```
+
+Далее, с помощью docker-compose запускаем контейнер из образа gitlab/gitlab-ce:latest. Внешний адрес передаем через переменную DOCKER_HOST_IP:
+
+```bash
+export DOCKER_HOST_IP=$(docker-machine ip docker-gitlab)
+docker-compose up -d
+```
+
+Как выяснилось, предварительно не нужно создавать никаких каталогов для bind mounts, они создаются сами.
+
+## Использование
+
+### Модель
+Есть проекты в группах проектов. Проект хранит исходный код и доступен как удаленный git репозиторий. К проекту привязан процесс CI/CD - pipeline, описание которого в файле .gitlab-ci.yml в корневой папке проекта.
+
+Pipeline запускается по событию изменения проекта (git commit). Он в свою очередь требует среды исполнения, именуемую здесь Runner.
+
+### Действия
+В общем, через вэб создаем, группу, добавляем туда проект. Проект подключаем как удаленный репозиторий локального проекта microservices. Подкладываем заготовку с описанием pipeline.  
+
+Внимание, магия, добавляем runner )))
+
+```bash
+#стартуем непонятный контейнер, кажись, просто набор инструментов для управления раннерами
+docker run -d --name gitlab-runner --restart always \
+-v /srv/gitlab-runner/config:/etc/gitlab-runner \
+-v /var/run/docker.sock:/var/run/docker.sock \
+gitlab/gitlab-runner:latest
+
+#ассоциируем его с сервером Gitlab
+docker exec -it gitlab-runner gitlab-runner register
+#...отвечаем на вопросы по подсказке из слайда, самые главные, - какие url сервера и токен
+```
+
+Далее тривиально, - добавляем приложение, тест для него и зависимость для теста. Дописываем pipeline так, чтоб в нем могли запускаться rubi приложения и добавляем вызов теста на стадии тестирования. Коммитим, наслаждаемся )
+
+
+### Проблемы
+
+- после перезапуска docker хоста меняется внешний адрес, старый остается в настройках проекта.
+
+## Дополнительное Задание
+
+Декомпозировать можно таким образом  
+- вытащить токен из инстанса гитлаба
+- в цикле регистрировать раннеры, на каждой итерации пользуясь многочисленными параметрами ```gitlab-runner register -h```
