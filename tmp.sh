@@ -36,3 +36,15 @@ docker run -d --network reddit --network-alias poster_db --network-alias comment
 docker run -d --network reddit --network-alias commenter --env-file ./envfile comment:1.0
 docker run -d --network reddit --network-alias poster --env-file ./envfile post:1.0
 docker run -d --network reddit -p 9292:9292 --env-file ./envfile ui:1.0
+
+
+docker-machine mount docker-host:src .
+fuse: mountpoint is not empty
+fuse: if you are sure this is safe, use the 'nonempty' mount option
+exit status 1
+
+docker-machine ssh docker-host mkdir src
+for _dir in comment post-py ui
+do
+  docker-machine scp -r $_dir docker-host:src
+done

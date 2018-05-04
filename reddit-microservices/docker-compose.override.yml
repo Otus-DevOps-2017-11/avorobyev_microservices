@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+
+  ui:
+    volumes:
+      - /home/docker-user/src/ui:/app
+    command: puma -w 2 --debug
+
+  post:
+    volumes:
+      - /home/docker-user/src/post-py:/app
+
+  comment:
+    volumes:
+      - /home/docker-user/src/comment:/app
+    command: puma -w 2 --debug
