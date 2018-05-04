@@ -113,10 +113,17 @@ ADD prometheus.yml /etc/prometheus
 
 for _d in ui comment post
 do
+  (
+  cd src/$_d && sh docker_build.sh
+  )
+done
+
+for _d in ui comment post
+do
   ( export USER_NAME=me
   cd src/$_d && sh docker_build.sh
   )
 done
 
-### monitoring-2 ###
-gcloud compute firewall-rules create mon-access --allow tcp:9090,tcp:8080,tcp:3000 --description="Allow prometheus access" --target-tags=prometheus
+### monitoring-3 ###
+gcloud compute firewall-rules create mon-access --allow tcp:9090,tcp:8080,tcp:3000,tcp:9093 --description="Allow prometheus access" --target-tags=prometheus

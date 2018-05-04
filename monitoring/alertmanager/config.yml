@@ -1,0 +1,10 @@
+global:
+  slack_api_url: 'https://hooks.slack.com/services/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'
+
+route:
+  receiver: 'slack-notifications'
+
+receivers:
+- name: 'slack-notifications'
+  slack_configs:
+  - channel: '#a-vorobyev'

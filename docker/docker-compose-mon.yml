@@ -3,7 +3,7 @@ version: '3'
 services:
 
   monitor:
-    image: prometheus-custom
+    image: ${USER_NAME}/prometheus
     ports:
       - 9090:9090
     volumes:
@@ -45,6 +45,8 @@ services:
 
   grafana:
     image: grafana/grafana
+    volumes:
+      - grafana_data:/var/lib/grafana
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: secret
@@ -52,6 +54,15 @@ services:
       - monitor
     ports:
       - 3000:3000
+    networks:
+      back_net:
+
+  alert:
+    image: ${USER_NAME}/alertman
+    command:
+    - '--config.file=/etc/alertmanager/config.yml'
+    ports:
+    - 9093:9093
     networks:
       back_net:
 
