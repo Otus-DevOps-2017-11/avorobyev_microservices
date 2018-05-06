@@ -126,3 +126,37 @@ for _img in post comment ui prometheus alertman
 do
   docker push $USER_NAME/$_img
 done
+
+
+### logging-1 ###
+
+#create machine
+docker-machine create --driver google \
+--google-project docker-199516 \
+--google-zone europe-west1-b \
+--google-machine-type n1-standard-1 \
+--google-tags logging \
+--google-machine-image $(gcloud compute images list --filter ubuntu-1604-lts --uri) \
+--google-disk-size 30 \
+--google-open-port 5601/tcp \
+--google-open-port 9292/tcp \
+--google-open-port 9411/tcp \
+logging-vm
+
+
+gcloud compute firewall-rules create logging-access \
+  --allow tcp:5601,tcp:9292,tcp:9411 \
+  --description="Allow logging demo access" \
+  --target-tags=logging
+
+
+#whoami
+export USER_NAME=alxbird
+
+#build images
+for _d in ui comment post-py
+do
+  (
+    cd src/$_d && sh docker_build.sh
+  )
+done
