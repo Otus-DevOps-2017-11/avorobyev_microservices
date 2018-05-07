@@ -1,0 +1,26 @@
+version: '3'
+
+  fluentd:
+    build: ./fluentd
+    ports:
+      - "24224:24224"
+      - "24224:24224/udp"
+    networks:
+      front_net:
+      back_net:
+
+  elasticsearch:
+    image: elasticsearch
+    expose:
+      - 9200
+    ports:
+      - "9200:9200"
+    networks:
+      back_net:
+
+  kibana:
+    image: kibana
+    ports:
+      - "5601:5601"
+    networks:
+      back_net:
