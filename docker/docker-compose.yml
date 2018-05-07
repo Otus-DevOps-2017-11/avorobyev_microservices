@@ -21,6 +21,11 @@ services:
       COMMENT_SERVICE_HOST: ${COMMENT_SERVICE_HOST}
     ports:
       - ${UI_PORT}:9292/tcp
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: service.ui
     networks:
       - front_net
 
