@@ -26,6 +26,9 @@ services:
       options:
         fluentd-address: localhost:24224
         tag: service.ui
+    depends_on:
+      - fluentd
+      - zipkin
     networks:
       - front_net
 
@@ -40,6 +43,8 @@ services:
       options:
         fluentd-address: localhost:24224
         tag: service.post
+    depends_on:
+      - fluentd
     networks:
       front_net:
         aliases:

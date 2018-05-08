@@ -27,6 +27,14 @@ services:
     networks:
       back_net:
 
+  zipkin:
+    image: openzipkin/zipkin
+    ports:
+      - "9411:9411"
+    networks:
+      front_net:
+      back_net:
+
 networks:
   front_net:
   back_net:
