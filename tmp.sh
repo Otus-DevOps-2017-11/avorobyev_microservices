@@ -118,8 +118,11 @@ do
   )
 done
 
+### monitoring-2 ###
+gcloud compute firewall-rules create mon-access --allow tcp:9090,tcp:8080,tcp:3000,tcp:9093 --description="Allow prometheus access" --target-tags=prometheus
+
 #push them
-for _img in post comment ui prometheus
+for _img in post comment ui prometheus alertman
 do
   docker push $USER_NAME/$_img
 done

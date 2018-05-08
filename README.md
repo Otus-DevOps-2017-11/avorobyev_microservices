@@ -330,3 +330,125 @@ docker-compose -f docker-compose.yml up -d #явно указываем конф
   ```
 
   Результат здесь: https://hub.docker.com/r/alxbird/
+
+# Задание 23
+
+Мониторинг и алармы
+
+## Модель
+
+### prometeus
+ предоставляет приложениям сбор данных через библиотеки. Видел для java, ruby, go, python. Данные собираются нескольким способами:
+
+- счетчик
+- шкала
+- гистограмма
+- сумма
+
+Для обработки и визуализаций в api есть богатый набор функций. Например:  
+
+```
+histogram_quantile(0.95, sum(rate(ui_request_latency_seconds_bucket[5m])) by (le))
+```  
+Попробую разобрать.  
+
+- ui_request_latency_seconds_bucket[5m] - vector range, массив значений метрики за последние 5 минут. Скорей двумерный массив, где первое измерение - набор меток, второе - последовательность пар (значение, время)
+
+- rate(...) - скорость изменения во времени значения из второго измерения. На выходе второе измерение схлопывается в одно значение.
+
+- sum(...) by (le) - сумма значений, объединенная по значению метки le ( по идентификатору бакета гистограммы ), то есть суммируем скорость роста времени обработки запросов
+
+- histogram_quantile(0.95, ... ) -  скорость роста времени обработки запроса, которая не будет достигнута в 95% случаев. Тут у меня возникают проблемы осмысления. Что эта характеристика дает? Какова природа и мотивация ее вычисления?
+
+### cadvisor
+ собирает данные по контейнерам через интерфейсы хоста, формирует метрики по правилам prometheus. В терминологи prometeus он экспортер.  
+
+### grafana
+ сервис визуализации различных даных. В качестве источника может быть prometheus. Раздел представления - дэшборд. На него уже выводятся графические представления данных. Дэшборды можно создавать свои или импортировать готовые из коллекции на сайте.  
+
+### alertmanager
+ рассылает нотификации о событиях. События поставляются через http интерфейс. В его конфигурации определяются каналы и способы рассылки. События определяются правилами, подсоединяемыми к конфигурации prometheus. Там же определяется точка доступа к рассыльщику. Далее при срабатывании правила prometheus генерирует описание события и отправляет на рассыльщик.
+
+## Действия
+
+- Разделили конфигурацию на основную и подсистему мониторинга.
+
+- В мониторинг добавили добавили сервисы cadvisor, grafana, alertmanager.
+
+```yaml
+#docker/docker-compose-mon.yml
+cadvisor:
+  image: google/cadvisor:latest
+  volumes:
+    - /:/rootfs:ro
+    - /var/run:/var/run:rw
+    - /sys:/sys:ro
+    - /var/lib/docker/:/var/lib/docker:ro
+    - /dev/disk/:/dev/disk:ro
+  ports:
+    - 8080:8080
+  networks:
+    back_net:
+
+grafana:
+  image: grafana/grafana
+  volumes:
+    - grafana_data:/var/lib/grafana
+  environment:
+    GF_SECURITY_ADMIN_USER: admin
+    GF_SECURITY_ADMIN_PASSWORD: secret
+  depends_on:
+    - monitor
+  ports:
+    - 3000:3000
+  networks:
+    back_net:
+
+alert:
+  image: ${USER_NAME}/alertman
+  command:
+  - '--config.file=/etc/alertmanager/config.yml'
+  ports:
+  - 9093:9093
+  networks:
+    back_net:
+```
+
+- Для cadvisor определили точку сбора данных в конфиге prometheus.
+
+```yaml
+#monitoring/prometheus/prometheus.yml
+- job_name: 'cadvisor'
+  static_configs:
+    - targets:
+      - cadvisor:8080
+```
+
+- Для grafana определили http сервис prometheus как источник данных. Далее ссылаемся на него при создании графиков в дэшбордах. Создали два дэшборда с визуализацией метрик сервиса UI и бизнес логики.
+
+- В alertmanager определили канал slack
+
+```yaml
+#monitoring/alertmanager/config.yml
+receivers:
+- name: 'slack-notifications'
+  slack_configs:
+  - channel: '#a-vorobyev'
+```
+
+- В prometheus определили правила наступления события и его структуру в файле ```monitoring/prometheus/alerts.yml```. А также задали интерфейс alertmanager как как пункт назначения событий.
+
+```yaml
+#monitoring/prometheus/prometheus.yml
+rule_files:
+  - alerts.yml
+
+alerting:
+  alertmanagers:
+    - scheme: http
+      static_configs:
+        - targets:
+          - alert:9093
+```
+
+Образы: https://hub.docker.com/r/alxbird/
