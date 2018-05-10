@@ -160,3 +160,28 @@ do
     cd src/$_d && sh docker_build.sh
   )
 done
+
+
+### swarm-1 ####
+
+GCP_PROJ=docker-199516
+
+for _m in master-1 worker-1 worker-2
+do
+  docker-machine create --driver google \
+     --google-project $GCP_PROJ \
+     --google-zone europe-west1-b \
+     --google-machine-type g1-small \
+     --google-machine-image $(gcloud compute images list --filter ubuntu-1604-lts --uri) \
+     $_m
+done
+
+
+function switch_docker_host {
+  local in_hostname=$1
+  eval $(docker-machine env $in_hostname)
+}
+
+docker swarm join-token manager|worker
+
+docker-machine ssh master-1

@@ -1,0 +1,80 @@
+version: '3'
+
+services:
+
+  post_db:
+    image: mongo:${MONGO_VERSION}
+    volumes:
+      - post_db:/data/db
+    networks:
+      back_net:
+        aliases:
+          - ${COMMENT_DATABASE_HOST}
+          - ${POST_DATABASE_HOST}
+
+  ui:
+    #build: ./ui
+    # image: ${USER_NAME}/ui:${UI_VERSION}
+    image: ${USER_NAME}/ui
+    environment:
+      POST_SERVICE_HOST: ${POST_SERVICE_HOST}
+      COMMENT_SERVICE_HOST: ${COMMENT_SERVICE_HOST}
+    ports:
+      - ${UI_PORT}:9292/tcp
+    # logging:
+    #   driver: "fluentd"
+    #   options:
+    #     fluentd-address: localhost:24224
+    #     tag: service.ui
+    # depends_on:
+    #   - fluentd
+    #   - zipkin
+    networks:
+      - front_net
+
+  post:
+    #build: ./post-py
+    # image: ${USER_NAME}/post:${POST_VERSION}
+    image: ${USER_NAME}/post
+    environment:
+      POST_DATABASE_HOST: ${POST_DATABASE_HOST}
+    # logging:
+    #   driver: "fluentd"
+    #   options:
+    #     fluentd-address: localhost:24224
+    #     tag: service.post
+    # depends_on:
+    #   - fluentd
+    networks:
+      front_net:
+        aliases:
+          - ${POST_SERVICE_HOST}
+      back_net:
+
+  comment:
+    #build: ./comment
+    # image: ${USER_NAME}/comment:${COMMENT_VERSION}
+    image: ${USER_NAME}/comment
+    environment:
+      COMMENT_DATABASE_HOST: "${COMMENT_DATABASE_HOST}"
+    networks:
+      front_net:
+        aliases:
+          - ${COMMENT_SERVICE_HOST}
+      back_net:
+
+volumes:
+  post_db:
+
+networks:
+  front_net:
+    # driver: bridge
+    # ipam:
+    #   config:
+    #     - subnet: ${FRONT_SUBNET:-10.0.2.0/24}
+
+  back_net:
+    # driver: bridge
+    # ipam:
+    #   config:
+    #     - subnet: ${BACK_SUBNET:-10.0.1.0/24}
