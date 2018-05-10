@@ -164,9 +164,16 @@ done
 
 ### swarm-1 ####
 
-GCP_PROJ=docker-199516
+function switch_docker_host {
+  local in_hostname=$1
+  eval $(docker-machine env $in_hostname)
+}
 
-for _m in master-1 worker-1 worker-2
+export GCP_PROJ=docker-199516
+export USER_NAME=alxbird
+declare -a MACHINES=(master-1 worker-1 worker-2)
+
+for _m in ${MACHINES[@]}
 do
   docker-machine create --driver google \
      --google-project $GCP_PROJ \
@@ -176,14 +183,5 @@ do
      $_m
 done
 
-
-function switch_docker_host {
-  local in_hostname=$1
-  eval $(docker-machine env $in_hostname)
-}
-
-docker swarm join-token manager|worker
-
-docker-machine ssh master-1
 
 docker node ls -q | xargs docker node inspect   -f '{{ .ID }} [{{ .Description.Hostname }}]: {{ .Spec.Labels }}'
