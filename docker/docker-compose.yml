@@ -21,6 +21,14 @@ services:
       COMMENT_SERVICE_HOST: ${COMMENT_SERVICE_HOST}
     ports:
       - ${UI_PORT}:9292/tcp
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: service.ui
+    depends_on:
+      - fluentd
+      - zipkin
     networks:
       - front_net
 
@@ -30,6 +38,13 @@ services:
     image: ${USER_NAME}/post
     environment:
       POST_DATABASE_HOST: ${POST_DATABASE_HOST}
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: service.post
+    depends_on:
+      - fluentd
     networks:
       front_net:
         aliases:
