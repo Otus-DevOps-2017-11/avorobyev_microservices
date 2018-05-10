@@ -2,15 +2,20 @@ version: '3'
 
 services:
 
-  post_db:
+  db:
     image: mongo:${MONGO_VERSION}
     volumes:
       - post_db:/data/db
+    deploy:
+      placement:
+        constraints:
+          - node.labels.reliability == high
     networks:
-      back_net:
-        aliases:
-          - ${COMMENT_DATABASE_HOST}
-          - ${POST_DATABASE_HOST}
+      - back_net
+      # back_net:
+      #   aliases:
+      #     - ${COMMENT_DATABASE_HOST}
+      #     - ${POST_DATABASE_HOST}
 
   ui:
     #build: ./ui
@@ -19,6 +24,13 @@ services:
     environment:
       POST_SERVICE_HOST: ${POST_SERVICE_HOST}
       COMMENT_SERVICE_HOST: ${COMMENT_SERVICE_HOST}
+    deploy:
+      placement:
+        constraints:
+          - node.role == worker
+    depends_on:
+      - post
+      - comment
     ports:
       - ${UI_PORT}:9292/tcp
     # logging:
@@ -38,6 +50,10 @@ services:
     image: ${USER_NAME}/post
     environment:
       POST_DATABASE_HOST: ${POST_DATABASE_HOST}
+    deploy:
+      placement:
+        constraints:
+          - node.role == worker
     # logging:
     #   driver: "fluentd"
     #   options:
@@ -45,11 +61,14 @@ services:
     #     tag: service.post
     # depends_on:
     #   - fluentd
+    depends_on:
+      - db
     networks:
-      front_net:
-        aliases:
-          - ${POST_SERVICE_HOST}
-      back_net:
+      - front_net
+      # front_net:
+      #   aliases:
+      #     - ${POST_SERVICE_HOST}
+      - back_net
 
   comment:
     #build: ./comment
@@ -57,11 +76,18 @@ services:
     image: ${USER_NAME}/comment
     environment:
       COMMENT_DATABASE_HOST: "${COMMENT_DATABASE_HOST}"
+    deploy:
+      placement:
+        constraints:
+          - node.role == worker
+    depends_on:
+      - db
     networks:
-      front_net:
-        aliases:
-          - ${COMMENT_SERVICE_HOST}
-      back_net:
+      - front_net
+      # front_net:
+      #   aliases:
+      #     - ${COMMENT_SERVICE_HOST}
+      - back_net
 
 volumes:
   post_db:
