@@ -11,11 +11,11 @@ services:
         constraints:
           - node.labels.reliability == high
     networks:
-      - back_net
-      # back_net:
-      #   aliases:
-      #     - ${COMMENT_DATABASE_HOST}
-      #     - ${POST_DATABASE_HOST}
+      # - back_net
+      back_net:
+        aliases:
+          - ${COMMENT_DATABASE_HOST}
+          - ${POST_DATABASE_HOST}
 
   ui:
     #build: ./ui
@@ -64,11 +64,11 @@ services:
     depends_on:
       - db
     networks:
-      - front_net
-      # front_net:
-      #   aliases:
-      #     - ${POST_SERVICE_HOST}
-      - back_net
+      #- front_net
+      front_net:
+        aliases:
+          - ${POST_SERVICE_HOST}
+      back_net:
 
   comment:
     #build: ./comment
@@ -83,11 +83,11 @@ services:
     depends_on:
       - db
     networks:
-      - front_net
-      # front_net:
-      #   aliases:
-      #     - ${COMMENT_SERVICE_HOST}
-      - back_net
+      # - front_net
+      front_net:
+        aliases:
+          - ${COMMENT_SERVICE_HOST}
+      back_net:
 
 volumes:
   post_db:
