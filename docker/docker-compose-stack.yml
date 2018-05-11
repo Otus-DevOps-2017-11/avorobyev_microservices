@@ -86,6 +86,11 @@ services:
           - ${COMMENT_SERVICE_HOST}
       back_net:
 
+  node-exporter:
+    image: prom/node-exporter:v0.15.0
+    deploy:
+      mode: global 
+
 volumes:
   post_db:
 
