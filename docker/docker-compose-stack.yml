@@ -25,6 +25,10 @@ services:
     deploy:
       mode: replicated
       replicas: 3
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 150M
       update_config:
         delay: 5s
         parallelism: 1
@@ -58,7 +62,11 @@ services:
       POST_DATABASE_HOST: ${POST_DATABASE_HOST}
     deploy:
       mode: replicated
-      replicas: 4
+      replicas: 3
+      resources:
+        limits:
+          cpus: "0.30"
+          memory: 300M
       update_config:
         delay: 10s
         parallelism: 2
@@ -92,6 +100,10 @@ services:
     deploy:
       mode: replicated
       replicas: 4
+      resources:
+        limits:
+          cpus: "0.30"
+          memory: 300M
       update_config:
         delay: 10s
         parallelism: 2
