@@ -29,6 +29,10 @@ services:
         delay: 5s
         parallelism: 1
         failure_action: rollback
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+        delay: 3s
       placement:
         constraints:
           - node.role == worker
@@ -59,6 +63,10 @@ services:
         delay: 10s
         parallelism: 2
         failure_action: rollback
+      restart_policy:
+        condition: on-failure
+        max_attempts: 10
+        delay: 1s
       placement:
         constraints:
           - node.role == worker
@@ -88,6 +96,10 @@ services:
         delay: 10s
         parallelism: 2
         failure_action: rollback
+      restart_policy:
+        condition: on-failure
+        max_attempts: 10
+        delay: 1s
       placement:
         constraints:
           - node.role == worker
