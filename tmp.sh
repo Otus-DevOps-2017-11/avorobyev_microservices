@@ -171,8 +171,10 @@ function switch_docker_host {
 
 export GCP_PROJ=docker-199516
 export USER_NAME=alxbird
+export STACK_NAME=DEV
 declare -a MACHINES=(master-1 worker-1 worker-2)
 
+#create machines
 for _m in ${MACHINES[@]}
 do
   docker-machine create --driver google \
@@ -183,5 +185,12 @@ do
      $_m
 done
 
+#drop machines
+for _m in ${MACHINES[@]}
+do
+  docker-machine rm $_m
+done
 
+#touch node labes
+docker node update --label-add reliability=high master-1
 docker node ls -q | xargs docker node inspect   -f '{{ .ID }} [{{ .Description.Hostname }}]: {{ .Spec.Labels }}'
