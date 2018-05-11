@@ -19,11 +19,16 @@ services:
   ui:
     image: ${USER_NAME}/ui
     environment:
+      ENV: ${STACK_NAME:-DEV}
       POST_SERVICE_HOST: ${POST_SERVICE_HOST}
       COMMENT_SERVICE_HOST: ${COMMENT_SERVICE_HOST}
     deploy:
       mode: replicated
-      replicas: 2
+      replicas: 3
+      update_config:
+        delay: 5s
+        parallelism: 1
+        failure_action: rollback
       placement:
         constraints:
           - node.role == worker
@@ -49,7 +54,11 @@ services:
       POST_DATABASE_HOST: ${POST_DATABASE_HOST}
     deploy:
       mode: replicated
-      replicas: 2
+      replicas: 4
+      update_config:
+        delay: 10s
+        parallelism: 2
+        failure_action: rollback
       placement:
         constraints:
           - node.role == worker
@@ -74,7 +83,11 @@ services:
       COMMENT_DATABASE_HOST: "${COMMENT_DATABASE_HOST}"
     deploy:
       mode: replicated
-      replicas: 2
+      replicas: 4
+      update_config:
+        delay: 10s
+        parallelism: 2
+        failure_action: rollback
       placement:
         constraints:
           - node.role == worker
@@ -89,7 +102,7 @@ services:
   node-exporter:
     image: prom/node-exporter:v0.15.0
     deploy:
-      mode: global 
+      mode: global
 
 volumes:
   post_db:
