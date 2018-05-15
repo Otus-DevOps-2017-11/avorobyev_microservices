@@ -625,13 +625,104 @@ docker service update --replicas 0 DEV_ui
 
 Системы управления контейнеризированными приложениями. Kubernetes.
 
-Модель
+### Модель
 
-Есть кластер. В нем узлы. Узлы классифицируются на управляющие и управляемые. На управляющих узлах исполняются процессы поддержки целостности кластера и поддержки сервисов в требуемом состоянии, а также  хранится состояние самого кластера.
+Есть кластер. В нем узлы. Узлы классифицируются на управляющие и просто узлы. На управляющих узлах исполняются процессы поддержки целостности кластера и поддержки сервисов в требуемом состоянии, а также  хранится состояние самого кластера. На остальных работают сервисы, несущие бизнес ценности.
 
+Компоненты управляющего узла  
 
-api-server
+- api-server  
+  Предоставляет API. Принимает и обрабатывает запросы.
 
-Предоставляет API.
+- kube-controller-manager  
+  Менеджер контроллеров. Каждый контроллер отвечает за состояние объектов в своем скоупе.
 
-kube-manager
+- kube-scheduler  
+  Управляет размещещением подов с приложениями на основании инфы о доступных ресурсах в кластере.
+
+Компоненты просто узла.
+
+- kubelet  
+ Кубеленок )  piglet ведь поросенок ))  Если серьезно, интерфейс для управления узлом. Сюда стучатся компоненты с управяющей ноды. Kubelet также может что то запрашивать.
+
+- kube-proxy  
+ Управляет сетевым трафиком. Активируется при запуске какого либо сервиса в кластере.
+
+- container runtime  
+ Контейнерное ПО, в котором будет работать приложение. Docker или rkt.
+
+- pods.
+ Абстракция от container runtime. Представление приложения в домене kubernetes. Наименьшая управляемая единица в кластере.
+
+Управляется все это через cli фронтенд  - kubectl. Он запрашивает api-server. Типичные примеры использования:
+
+```bash
+kubectl get pods
+kubectl get services
+kubectl get nodes
+```
+
+Дальше ничего не помню. Отшибло после прохождения тяжелого пути )
+
+### Действия
+
+После тяжелых было грустно, но я собрался и сделал задание так:
+
+```bash
+function make_manifest {
+  local in_app_name=$1
+  local in_image_name=$2
+  echo -n "\
+---
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: ${in_app_name}-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ${in_app_name}
+  template:
+    metadata:
+      name: ${in_app_name}
+      labels:
+        app: ${in_app_name}
+    spec:
+      containers:
+      - image: ${in_image_name}
+        name: ${in_app_name}
+"
+}
+
+declare -a APPS=(post ui mongo comment)
+USER_NAME=alxbird
+declare -A APP_IMAGE=(
+  [post]=$USER_NAME/post
+  [ui]=$USER_NAME/ui
+  [comment]=$USER_NAME/comment
+  [mongo]=mongo:3.2
+)
+
+for _app in ${APPS[@]}
+do
+  _manifest=$(make_manifest $_app ${APP_IMAGE[$_app]})
+  echo "$_manifest" > ${_app}_deployment.yml
+  echo "$_manifest" | kubectl apply -f -
+done
+```
+
+в результате
+
+```bash
+admine@ubun-vm:~/MyBox/Projects/Otus/avorobyev_microservices/kubernetes$ kubectl get pods
+NAME                                  READY     STATUS    RESTARTS   AGE
+busybox-68654f944b-6fnmb              1/1       Running   1          1h
+comment-deployment-7784766558-dwg52   1/1       Running   0          1m
+mongo-deployment-778dcd865b-29vhn     1/1       Running   0          1m
+nginx-65899c769f-qf86h                1/1       Running   0          1h
+post-deployment-c9697fc94-hs7kf       1/1       Running   0          1m
+ui-deployment-78fb684db-sktc7         1/1       Running   0          1m
+untrusted                             1/1       Running   0          1h
+admine@ubun-vm:~/MyBox/Projects/Otus/avorobyev_microservices/kubernetes$
+```
