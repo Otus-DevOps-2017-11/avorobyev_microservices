@@ -5,20 +5,23 @@ metadata:
   name: comment-deployment
   labels:
     app: reddit
-    component: post
+    component: comment
 spec:
-  replicas: 3
+  replicas: 2
   selector:
     matchLabels:
       app: reddit
-      component: post
+      component: comment
   template:
     metadata:
       name: comment
       labels:
         app: reddit
-        component: post
+        component: comment
     spec:
       containers:
       - image: alxbird/comment
         name: comment
+        env:
+          - name: COMMENT_DATABASE_HOST
+            value: mongodb
