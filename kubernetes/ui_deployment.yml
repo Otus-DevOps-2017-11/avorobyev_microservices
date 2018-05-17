@@ -3,16 +3,21 @@ apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
   name: ui-deployment
+  labels:
+    app: reddit
+    component: ui
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
-      app: ui
+      app: reddit
+      component: ui
   template:
     metadata:
       name: ui
       labels:
-        app: ui
+        app: reddit
+        component: ui
     spec:
       containers:
       - image: alxbird/ui
