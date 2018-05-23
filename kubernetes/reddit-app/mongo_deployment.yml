@@ -27,4 +27,6 @@ spec:
             mountPath: /data/db
       volumes:
         - name: mongo-persistent-storage
-          emptyDir: {}
+          gcePersistentDisk:
+            pdName: reddit-mongo-disk
+            fsType: ext4
