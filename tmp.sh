@@ -831,3 +831,8 @@ from server for: "comment_deployment.yml": the server was unable to return a res
 ### kubernetez 3 ###
 
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout tls.key -out tls.crt -subj "/CN=35.201.76.254"
+
+# star task lazy way
+kubectl get secret ui-ingress -o=yaml -n dev | grep -v "creationTimestamp|uid|resourceVersion" > reddit-app\ui-ingress-secret.yml
+kubectl delete -f reddit-app\ui-ingress.yml -f reddit-app\ui-ingress-secret.yml -n dev
+kubectl.exe apply -f reddit-app\ui-ingress-secret.yml -f reddit-app\ui-ingress.yml -n dev
