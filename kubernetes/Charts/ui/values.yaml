@@ -1,0 +1,8 @@
+---
+service:
+  externalPort: 9292
+  internalPort: 9292
+
+image:
+  repo: alxbird/ui
+  tag: latest
