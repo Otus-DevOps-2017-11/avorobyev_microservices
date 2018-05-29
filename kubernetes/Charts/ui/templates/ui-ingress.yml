@@ -2,7 +2,7 @@
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: {{ .Release.Name }}-{{ .Chart.Name }}
+  name: {{ template "get.fullname" . }}
   annotations:
     kubernetes.io/ingress.allow-http: "false"
 spec:
