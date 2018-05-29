@@ -1,10 +1,10 @@
 ---
-service:
-  externalPort: 5000
-  internalPort: 5000
-
-image:
-  repo: alxbird/post
-  tag: latest
-
-databaseHost: 
+# service:
+#   externalPort: 5000
+#   internalPort: 5000
+#
+# image:
+#   repo: alxbird/post
+#   tag: latest
+#
+# databaseHost: 
