@@ -1,0 +1,145 @@
+version: '3'
+
+services:
+
+  db:
+    image: mongo:${MONGO_VERSION}
+    volumes:
+      - post_db:/data/db
+    deploy:
+      placement:
+        constraints:
+          - node.labels.reliability == high
+    networks:
+      back_net:
+        aliases:
+          - ${COMMENT_DATABASE_HOST}
+          - ${POST_DATABASE_HOST}
+
+  ui:
+    image: ${USER_NAME}/ui
+    environment:
+      ENV: ${STACK_NAME:-DEV}
+      POST_SERVICE_HOST: ${POST_SERVICE_HOST}
+      COMMENT_SERVICE_HOST: ${COMMENT_SERVICE_HOST}
+    deploy:
+      mode: replicated
+      replicas: 3
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 150M
+      update_config:
+        delay: 5s
+        parallelism: 1
+        failure_action: rollback
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+        delay: 3s
+      placement:
+        constraints:
+          - node.role == worker
+    depends_on:
+      - post
+      - comment
+    ports:
+      - ${UI_PORT}:9292/tcp
+    # logging:
+    #   driver: "fluentd"
+    #   options:
+    #     fluentd-address: localhost:24224
+    #     tag: service.ui
+    # depends_on:
+    #   - fluentd
+    #   - zipkin
+    networks:
+      - front_net
+
+  post:
+    image: ${USER_NAME}/post
+    environment:
+      POST_DATABASE_HOST: ${POST_DATABASE_HOST}
+    deploy:
+      mode: replicated
+      replicas: 3
+      resources:
+        limits:
+          cpus: "0.30"
+          memory: 300M
+      update_config:
+        delay: 10s
+        parallelism: 2
+        failure_action: rollback
+      restart_policy:
+        condition: on-failure
+        max_attempts: 10
+        delay: 1s
+      placement:
+        constraints:
+          - node.role == worker
+    # logging:
+    #   driver: "fluentd"
+    #   options:
+    #     fluentd-address: localhost:24224
+    #     tag: service.post
+    # depends_on:
+    #   - fluentd
+    depends_on:
+      - db
+    networks:
+      front_net:
+        aliases:
+          - ${POST_SERVICE_HOST}
+      back_net:
+
+  comment:
+    image: ${USER_NAME}/comment
+    environment:
+      COMMENT_DATABASE_HOST: "${COMMENT_DATABASE_HOST}"
+    deploy:
+      mode: replicated
+      replicas: 4
+      resources:
+        limits:
+          cpus: "0.30"
+          memory: 300M
+      update_config:
+        delay: 10s
+        parallelism: 2
+        failure_action: rollback
+      restart_policy:
+        condition: on-failure
+        max_attempts: 10
+        delay: 1s
+      placement:
+        constraints:
+          - node.role == worker
+    depends_on:
+      - db
+    networks:
+      front_net:
+        aliases:
+          - ${COMMENT_SERVICE_HOST}
+      back_net:
+
+  node-exporter:
+    image: prom/node-exporter:v0.15.0
+    deploy:
+      mode: global
+
+volumes:
+  post_db:
+
+networks:
+  front_net:
+    # driver: bridge
+    # ipam:
+    #   config:
+    #     - subnet: ${FRONT_SUBNET:-10.0.2.0/24}
+
+  back_net:
+    # driver: bridge
+    # ipam:
+    #   config:
+    #     - subnet: ${BACK_SUBNET:-10.0.1.0/24}

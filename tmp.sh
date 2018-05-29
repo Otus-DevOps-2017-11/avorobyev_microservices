@@ -160,3 +160,37 @@ do
     cd src/$_d && sh docker_build.sh
   )
 done
+
+
+### swarm-1 ####
+
+function switch_docker_host {
+  local in_hostname=$1
+  eval $(docker-machine env $in_hostname)
+}
+
+export GCP_PROJ=docker-199516
+export USER_NAME=alxbird
+export STACK_NAME=DEV
+declare -a MACHINES=(master-1 worker-1 worker-2)
+
+#create machines
+for _m in ${MACHINES[@]}
+do
+  docker-machine create --driver google \
+     --google-project $GCP_PROJ \
+     --google-zone europe-west1-b \
+     --google-machine-type g1-small \
+     --google-machine-image $(gcloud compute images list --filter ubuntu-1604-lts --uri) \
+     $_m
+done
+
+#drop machines
+for _m in ${MACHINES[@]}
+do
+  docker-machine rm $_m
+done
+
+#touch node labes
+docker node update --label-add reliability=high master-1
+docker node ls -q | xargs docker node inspect   -f '{{ .ID }} [{{ .Description.Hostname }}]: {{ .Spec.Labels }}'
