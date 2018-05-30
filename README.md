@@ -838,3 +838,18 @@ kubectl get secret ui-ingress -o=yaml -n dev | grep -v "creationTimestamp|uid|re
 kubectl delete -f reddit-app\ui-ingress.yml -f reddit-app\ui-ingress-secret.yml -n dev
 kubectl apply -f reddit-app\ui-ingress-secret.yml -f reddit-app\ui-ingress.yml -n dev
 ```
+
+# Задание 31
+
+Helm. Gitlab.
+
+### Модель
+
+Helm шаблонизирует манифесты. Вводит понятия чарта (пакета манифестов), его релиза (версионного среза), ревизии (инсталляции в кластер) и зависимостей между чартами.
+
+### Действия
+
+- Установил Helm
+- Шаблонизировал компоненты reddit
+- Установил зависимости с помощью мастер-чарта
+- Провел рекомендуемые манипуляции с гитлабом
