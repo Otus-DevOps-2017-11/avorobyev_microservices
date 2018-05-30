@@ -4,10 +4,19 @@ kind: Ingress
 metadata:
   name: {{ template "get.fullname" . }}
   annotations:
-    kubernetes.io/ingress.allow-http: "false"
+    # kubernetes.io/ingress.allow-http: "false"
+    kubernetes.io/ingress.class: {{ .Values.ingress.class }}
 spec:
-  tls:
-    - secretName: secret-{{ template "get.fullname" . }}
-  backend:
-    serviceName: {{ .Release.Name }}-{{ .Chart.Name }}
-    servicePort: {{ .Values.service.externalPort }}
+  # tls:
+  #   - secretName: secret-{{ template "get.fullname" . }}
+  # backend:
+  #   serviceName: {{ .Release.Name }}-{{ .Chart.Name }}
+  #   servicePort: {{ .Values.service.externalPort }}
+  rules:
+  - host: {{ .Values.ingress.host | default .Release.Name }}
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: {{ template "get.fullname" . }}
+          servicePort: {{ .Values.service.externalPort }}

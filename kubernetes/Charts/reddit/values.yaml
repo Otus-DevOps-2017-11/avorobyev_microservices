@@ -13,6 +13,9 @@ ui:
   commentHost:
   commentPort:
 
+  ingress:
+    class: nginx
+
 comment:
   service:
     externalPort: 9292
