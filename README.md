@@ -728,3 +728,62 @@ admine@ubun-vm:~/MyBox/Projects/Otus/avorobyev_microservices/kubernetes$
 ```
 
 Потом кластер был загашен инструкциями с последней страницы тяжеляка. Аминь.
+
+
+# Задание 29
+
+Kubernetes. Установка reddit в локальном кластере и в GKE.
+
+
+### Модель
+
+Каждому объекту можно привязать произвольный набор свойств, где каждое есть пара ключ - значение. Размещаются они в разделе метаданных в подразелах labels и annotations. Первый предназначен для неуникальной идентификации и используется для выборок. Второй для передачи дополнительной семантики для стороннего использования. В конфигурационных файлах объекты связываются друг с другом с помощью labels.
+
+Внутри кластера могут быть заданы namespace'ы. Для упорядочивания объектов внутри кластера. Воспринимается как подкластер.
+
+Работа с kubernetes всегда выполняется в каком то контексте. Контекст - это сочетание кластера, пользователя и пространства имен (не обязательно).
+
+Группу подов обычно заводят через Deployment. В его конфиге определяется логическое выражение. Deployment подтащит поды, для меток которых выражение возвратит true.
+
+Для доступа к подам(приложениям) извне запускаем объект Service. Оно ассоциируется с подами так же, как и Deployment. После запуска имя сервиса разрешается через DNS на всех подах (в одном namespace).
+
+Kubernetes AA. Страшный черный ящик. Ничего не понял, кроме того что все и вся должно проходить AA (service -> service, user -> service). Четкого разбора сценариев нигде не видел. В hardway заводили сертификаты, но попытка осознать механику закончилась выносом мозга. Возможно, стоит смотреть сюда https://kubernetes.io/docs/admin/authentication. Хотя, если из коробки все работает, то может ну его на ... )
+
+### Действия
+
+- Запустил локальный кластер через minikube.
+
+- Создал yml конфиги для развертывания компонентов reddit. Разместил в ```kubernetes\reddit-app```.  
+
+  Предполагаю, что создание дополнительной ассоцииации поды <- сервис для имитации сетевого алиаса приведено в ДЗ просто для ознакомления.  Суть понял, но делать так не стал, оставив сервис mongo и передав его имя через окружения контейнеров post и comment.
+
+  ```yaml
+  #kubernetes\reddit-app\post_deployment.yml
+  env:
+    - name: POST_DATABASE_HOST
+      value: mongodb
+
+  #kubernetes\reddit-app\comment_deployment.yml
+  env:
+    - name: COMMENT_DATABASE_HOST
+      value: mongodb
+  ```
+
+- Запустил reddit в кластере в пространствах имен default и dev.
+
+- Завел кластер в GKE. Посмотрел на смену контекста после соединения.
+
+- Запустил reddit в кластере GKE в пространстве dev.
+
+### Проблемы
+
+- minikube под windows - это страх и ненависть. Начиная от невозможности работы через прокси, до спонтанных вылетов типа:
+
+```
+λ kubectl.exe apply -f comment_deployment.yml
+Error from server (Timeout): error when retrieving current configuration of:
+&{0xc04397ccc0 0xc043ef8a80 default comment-deployment comment_deployment.yml 0xc043d96658 0xc043d96658  false}
+from server for: "comment_deployment.yml": the server was unable to return a response in the time allotted, but may still be processing the request (get deployments.apps comment-deployment)
+```
+
+- дэшборд в созданном сегодня кластере не запустился. Причем ни одна из ошибок не относилась к RBAC. Потом обратил внимание на пояснение в вэбе (... Note: Dashboard UI is deprecated. You can find the updated graphical user interface for Kubernetes Engine in the Google Cloud Platform Console Learn more) Возможно, проблема в этом.

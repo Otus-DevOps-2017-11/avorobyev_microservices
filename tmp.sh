@@ -816,3 +816,12 @@ post-deployment-c9697fc94-hs7kf       1/1       Running   0          1m
 ui-deployment-78fb684db-sktc7         1/1       Running   0          1m
 untrusted                             1/1       Running   0          1h
 admine@ubun-vm:~/MyBox/Projects/Otus/avorobyev_microservices/kubernetes$
+
+#### minikube ####
+
+minikube start
+
+λ kubectl.exe apply -f comment_deployment.yml
+Error from server (Timeout): error when retrieving current configuration of:
+&{0xc04397ccc0 0xc043ef8a80 default comment-deployment comment_deployment.yml 0xc043d96658 0xc043d96658  false}
+from server for: "comment_deployment.yml": the server was unable to return a response in the time allotted, but may still be processing the request (get deployments.apps comment-deployment)
