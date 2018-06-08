@@ -825,3 +825,14 @@ minikube start
 Error from server (Timeout): error when retrieving current configuration of:
 &{0xc04397ccc0 0xc043ef8a80 default comment-deployment comment_deployment.yml 0xc043d96658 0xc043d96658  false}
 from server for: "comment_deployment.yml": the server was unable to return a response in the time allotted, but may still be processing the request (get deployments.apps comment-deployment)
+
+
+
+### kubernetez 3 ###
+
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout tls.key -out tls.crt -subj "/CN=35.201.76.254"
+
+# star task lazy way
+kubectl get secret ui-ingress -o=yaml -n dev | grep -v "creationTimestamp|uid|resourceVersion" > reddit-app\ui-ingress-secret.yml
+kubectl delete -f reddit-app\ui-ingress.yml -f reddit-app\ui-ingress-secret.yml -n dev
+kubectl.exe apply -f reddit-app\ui-ingress-secret.yml -f reddit-app\ui-ingress.yml -n dev
