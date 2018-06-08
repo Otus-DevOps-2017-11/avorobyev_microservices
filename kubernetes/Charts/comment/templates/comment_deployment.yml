@@ -1,0 +1,29 @@
+---
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ template "get.fullname" . }}
+  labels:
+    app: reddit
+    component: comment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reddit
+      component: comment
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      name: comment
+      labels:
+        app: reddit
+        component: comment
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+      - image: alxbird/comment
+        name: comment
+        env:
+          - name: COMMENT_DATABASE_HOST
+            value: {{ .Values.databaseHost | default (printf "%s-mongodb" .Release.Name) }}
